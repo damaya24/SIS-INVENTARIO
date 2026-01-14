@@ -35,3 +35,39 @@ def create_product(
     db.commit()
     db.refresh(new_product)
     return new_product
+'''EDITAR PRODUCTO'''
+@router.put("/{product_id}")
+def update_product(
+    product_id: int,
+    product: dict,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+
+    for key, value in product.items():
+        setattr(db_product, key, value)
+
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
+"""ELIMINAR PRODUCTO"""
+@router.delete("/{product_id}")
+def delete_product(
+    product_id: int,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    product = db.query(Product).filter(Product.id == product_id).first()
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+
+    db.delete(product)
+    db.commit()
+    return {"message": "Producto eliminado"}
+
